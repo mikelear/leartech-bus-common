@@ -1,0 +1,4 @@
+{
+    "sonarQubeUri": "https://sonarqube.jx.mqube.build",
+    "projectKey": "mqube-go-common"
+}

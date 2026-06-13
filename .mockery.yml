@@ -1,0 +1,59 @@
+all: false
+dir: '{{.InterfaceDir}}/mocks'
+filename: '{{.InterfaceName | lower}}.go'
+force-file-write: true
+formatter: goimports
+log-level: info
+template: testify
+structname: Mock{{.InterfaceName}}
+pkgname: mocks
+recursive: false
+packages:
+  github.com/mikelear/leartech-bus-common/pkg/cache:
+    config:
+      all: true
+      dir: '{{.InterfaceDir}}'
+      filename: '{{.InterfaceName | lower}}_mock.go'
+      pkgname: '{{.SrcPackageName}}'
+  github.com/mikelear/leartech-bus-common/pkg/lock:
+    config:
+      all: true
+      dir: '{{.InterfaceDir}}'
+      filename: '{{.InterfaceName | lower}}_mock.go'
+      pkgname: '{{.SrcPackageName}}'
+  github.com/mikelear/leartech-bus-common/pkg/queue:
+    config:
+      all: true
+      dir: '{{.InterfaceDir}}'
+      filename: '{{.InterfaceName | lower}}_mock.go'
+      pkgname: '{{.SrcPackageName}}'
+  github.com/mikelear/leartech-bus-common/pkg/redis:
+    config:
+      all: true
+      dir: '{{.InterfaceDir}}'
+      filename: '{{.InterfaceName | lower}}_mock.go'
+      pkgname: '{{.SrcPackageName}}'
+  github.com/mikelear/leartech-bus-common/pkg/random:
+    config:
+      all: true
+      dir: '{{.InterfaceDir}}'
+      filename: '{{.InterfaceName | lower}}_mock.go'
+      pkgname: '{{.SrcPackageName}}'
+  github.com/mikelear/leartech-bus-common/pkg/mongo:
+    config:
+      all: true
+      dir: '{{.InterfaceDir}}'
+      filename: '{{.InterfaceName | lower}}_mock.go'
+      pkgname: '{{.SrcPackageName}}'
+  github.com/mikelear/leartech-bus-common/pkg/mongo/migration:
+    config:
+      all: true
+      dir: '{{.InterfaceDir}}'
+      filename: '{{.InterfaceName | lower}}_mock.go'
+      pkgname: '{{.SrcPackageName}}'
+  github.com/mikelear/leartech-bus-common/pkg/auth:
+    config:
+      all: true
+      dir: '{{.InterfaceDir}}'
+      filename: '{{.InterfaceName | lower}}_mock.go'
+      pkgname: '{{.SrcPackageName}}'

@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: sonarqube-scan
+spec:
+  pipelineSpec:
+    tasks:
+    - name: from-build-pack
+      resources: {}
+      taskSpec:
+        metadata: {}
+        stepTemplate:
+          image: uses:jenkins-x/jx3-pipeline-catalog/tasks/go/pullrequest.yaml@versionStream
+          name: ""
+          resources:
+            limits: {}
+          workingDir: /workspace/source
+        steps:
+        - image: uses:spring-financial-group/mqube-pipeline-catalog/tasks/go/sonar-scanner-go-pr.yaml@main
+          name: ""
+          resources: {}
+  podTemplate: {}
+  serviceAccountName: tekton-bot
+  timeout: 1h0m0s
+status: {}
