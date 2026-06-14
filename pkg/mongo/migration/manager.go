@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/rs/zerolog/log"
 	"github.com/mikelear/leartech-bus-common/pkg/mongo"
+	"github.com/rs/zerolog/log"
 )
 
 // TemporaryMigrationName is a migration inserted to tell other services that a migration is running

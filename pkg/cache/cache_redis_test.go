@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/mikelear/leartech-bus-common/pkg/cache"
 	rediscommon "github.com/mikelear/leartech-bus-common/pkg/redis"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
