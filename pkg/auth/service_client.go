@@ -82,7 +82,7 @@ func (c *ServiceClient) Middleware(requiredPerms Permissions) gin.HandlerFunc {
 
 func (c *ServiceClient) isTokenAllowedAccess(requiredPerms Permissions, tokenClaims *TokenClaims) bool {
 	// Either the token is from an internal service, in which case we allow it access.
-	// Or it's a User's token with the 'mqubeapi' scope and the required permissions.
+	// Or it's a User's token with the 'leartechapi' scope and the required permissions.
 	return tokenClaims.Scopes.HasInternalService() || (tokenClaims.Scopes.HasAPI() && tokenClaims.Permissions.IsPermitted(requiredPerms))
 }
 
