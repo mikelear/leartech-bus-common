@@ -65,7 +65,7 @@ func TestAuthClient_Middleware(t *testing.T) {
 			tokenClaims: &auth.TokenClaims{
 				UserID:      "user-123",
 				Permissions: auth.Permissions{"Admin", "Broker", "BrokerSupport"},
-				Scopes:      auth.Scopes{"mqubeapi"},
+				Scopes:      auth.Scopes{"leartechapi"},
 			},
 			requiredPermissions: requiredPerms,
 			expectedStatusCode:  http.StatusOK,
@@ -93,7 +93,7 @@ func TestAuthClient_Middleware(t *testing.T) {
 			tokenClaims: &auth.TokenClaims{
 				UserID:      "user-123",
 				Permissions: auth.Permissions{},
-				Scopes:      auth.Scopes{"mqubeapi"},
+				Scopes:      auth.Scopes{"leartechapi"},
 			},
 			requiredPermissions: requiredPerms,
 			expectedStatusCode:  http.StatusForbidden,
@@ -103,7 +103,7 @@ func TestAuthClient_Middleware(t *testing.T) {
 			tokenClaims: &auth.TokenClaims{
 				UserID:      "user-123",
 				Permissions: auth.Permissions{"CaseRead", "CaseWrite", "Finance"},
-				Scopes:      auth.Scopes{"mqubeapi"},
+				Scopes:      auth.Scopes{"leartechapi"},
 			},
 			requiredPermissions: requiredPerms,
 			expectedStatusCode:  http.StatusForbidden,
@@ -113,7 +113,7 @@ func TestAuthClient_Middleware(t *testing.T) {
 			tokenClaims: &auth.TokenClaims{
 				UserID:      "service-account",
 				Permissions: auth.Permissions{}, // No permissions, but has internal services scope
-				Scopes:      auth.Scopes{"mqubeapi.internal_services"},
+				Scopes:      auth.Scopes{"leartechapi.internal_services"},
 			},
 			requiredPermissions: requiredPerms,
 			expectedStatusCode:  http.StatusOK,
@@ -123,7 +123,7 @@ func TestAuthClient_Middleware(t *testing.T) {
 			tokenClaims: &auth.TokenClaims{
 				UserID:      "user-123",
 				Permissions: auth.Permissions{"SomeOtherPermission"},
-				Scopes:      auth.Scopes{"mqubeapi"},
+				Scopes:      auth.Scopes{"leartechapi"},
 			},
 			requiredPermissions: nil,
 			expectedStatusCode:  http.StatusOK,
@@ -133,7 +133,7 @@ func TestAuthClient_Middleware(t *testing.T) {
 			tokenClaims: &auth.TokenClaims{
 				UserID:      "user-123",
 				Permissions: auth.Permissions{"Broker"}, // Only one of Admin, Broker required
-				Scopes:      auth.Scopes{"mqubeapi"},
+				Scopes:      auth.Scopes{"leartechapi"},
 			},
 			requiredPermissions: requiredPerms,
 			expectedStatusCode:  http.StatusOK,
@@ -505,7 +505,7 @@ func TestAuthClient_PlatformMiddleware(t *testing.T) {
 			name: "HappyPath",
 			tokenClaims: &auth.TokenClaims{
 				UserID:              "user-123",
-				Scopes:              auth.Scopes{"mqubeapi"},
+				Scopes:              auth.Scopes{"leartechapi"},
 				PlatformPermissions: auth.PlatformPermissions{auth.SetValues, auth.ViewBankDetails, auth.InternalQA},
 			},
 			requiredPlatformPerms: requiredPlatformPerms,
@@ -515,7 +515,7 @@ func TestAuthClient_PlatformMiddleware(t *testing.T) {
 			name: "PartialPlatformPermissionMatch",
 			tokenClaims: &auth.TokenClaims{
 				UserID:              "user-123",
-				Scopes:              auth.Scopes{"mqubeapi"},
+				Scopes:              auth.Scopes{"leartechapi"},
 				PlatformPermissions: auth.PlatformPermissions{auth.ViewBankDetails},
 			},
 			requiredPlatformPerms: requiredPlatformPerms,
@@ -525,7 +525,7 @@ func TestAuthClient_PlatformMiddleware(t *testing.T) {
 			name: "MissingPlatformPermissions",
 			tokenClaims: &auth.TokenClaims{
 				UserID:              "user-123",
-				Scopes:              auth.Scopes{"mqubeapi"},
+				Scopes:              auth.Scopes{"leartechapi"},
 				PlatformPermissions: auth.PlatformPermissions{auth.InternalQA},
 			},
 			requiredPlatformPerms: requiredPlatformPerms,
@@ -535,7 +535,7 @@ func TestAuthClient_PlatformMiddleware(t *testing.T) {
 			name: "EmptyPlatformPermissions",
 			tokenClaims: &auth.TokenClaims{
 				UserID:              "user-123",
-				Scopes:              auth.Scopes{"mqubeapi"},
+				Scopes:              auth.Scopes{"leartechapi"},
 				PlatformPermissions: auth.PlatformPermissions{},
 			},
 			requiredPlatformPerms: requiredPlatformPerms,
@@ -545,7 +545,7 @@ func TestAuthClient_PlatformMiddleware(t *testing.T) {
 			name: "InternalServiceBypassesPlatformPermissions",
 			tokenClaims: &auth.TokenClaims{
 				UserID:              "service-account",
-				Scopes:              auth.Scopes{"mqubeapi.internal_services"},
+				Scopes:              auth.Scopes{"leartechapi.internal_services"},
 				PlatformPermissions: auth.PlatformPermissions{},
 			},
 			requiredPlatformPerms: requiredPlatformPerms,
@@ -555,7 +555,7 @@ func TestAuthClient_PlatformMiddleware(t *testing.T) {
 			name: "NoPlatformPermissionsRequired",
 			tokenClaims: &auth.TokenClaims{
 				UserID:              "user-123",
-				Scopes:              auth.Scopes{"mqubeapi"},
+				Scopes:              auth.Scopes{"leartechapi"},
 				PlatformPermissions: auth.PlatformPermissions{},
 			},
 			requiredPlatformPerms: nil,
@@ -626,7 +626,7 @@ func TestAuthClient_GetRequestTokenFromGinContext(t *testing.T) {
 			name: "DecodeTokenFromHeader",
 			tokenClaims: &auth.TokenClaims{
 				UserID:      "user-123",
-				Scopes:      auth.Scopes{"mqubeapi"},
+				Scopes:      auth.Scopes{"leartechapi"},
 				Permissions: auth.Permissions{"Admin"},
 			},
 			contextModifier: func(tokenClaims *auth.TokenClaims, c *gin.Context) *gin.Context {

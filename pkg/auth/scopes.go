@@ -11,8 +11,8 @@ type Scope string
 
 // Scopes associated with a OAuth2 client
 const (
-	ScopeAPI              Scope = "mqubeapi"
-	ScopeInternalServices Scope = "mqubeapi.internal_services"
+	ScopeAPI              Scope = "leartechapi"
+	ScopeInternalServices Scope = "leartechapi.internal_services"
 )
 
 type Scopes []Scope
