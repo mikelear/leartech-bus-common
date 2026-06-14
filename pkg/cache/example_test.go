@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"github.com/mikelear/leartech-bus-common/pkg/cache"
 	"github.com/mikelear/leartech-bus-common/pkg/redis"
+	"github.com/rs/zerolog/log"
 )
 
 // User represents a simple user model for demonstration purposes.

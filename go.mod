@@ -2,6 +2,8 @@ module github.com/mikelear/leartech-bus-common
 
 go 1.24.5
 
+toolchain go1.26.4
+
 require (
 	github.com/MicahParks/keyfunc/v3 v3.7.0
 	github.com/gin-gonic/gin v1.11.0

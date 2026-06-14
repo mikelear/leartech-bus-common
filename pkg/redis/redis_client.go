@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mikelear/leartech-bus-common/pkg/logger"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
-	"github.com/mikelear/leartech-bus-common/pkg/logger"
 )
 
 // RedisClient is an interface wrapping the Redis client operations needed for caching.

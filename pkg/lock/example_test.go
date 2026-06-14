@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"github.com/mikelear/leartech-bus-common/pkg/lock"
 	"github.com/mikelear/leartech-bus-common/pkg/redis"
+	"github.com/rs/zerolog/log"
 )
 
 // ExampleNewRedisLock demonstrates creating and using a distributed lock with Redis.

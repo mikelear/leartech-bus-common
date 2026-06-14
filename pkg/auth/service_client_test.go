@@ -495,11 +495,11 @@ func TestAuthClient_PlatformMiddleware(t *testing.T) {
 	requiredPlatformPerms := auth.PlatformPermissions{auth.SetValues, auth.ViewBankDetails}
 
 	testCases := []struct {
-		name                    string
-		tokenClaims             *auth.TokenClaims
-		userToken               string
-		requiredPlatformPerms   auth.PlatformPermissions
-		expectedStatusCode      int
+		name                  string
+		tokenClaims           *auth.TokenClaims
+		userToken             string
+		requiredPlatformPerms auth.PlatformPermissions
+		expectedStatusCode    int
 	}{
 		{
 			name: "HappyPath",
