@@ -43,4 +43,23 @@ type Config struct {
 	// DisableMiddleware stops the endpoint authentication middleware from being performed.
 	// Useful for local development. Do not use in production.
 	DisableMiddleware bool `yaml:"disableMiddleware"`
+
+	// Resource is the canonical URI of this resource server (RFC 9728 §3.1).
+	// Optional. When set together with AuthorizationServers, the package can
+	// serve a protected-resource-metadata document via ResourceMetadataHandler.
+	// Empty default = discovery feature disabled (backward-compatible).
+	Resource string `env:"MQUBE_AUTH_RESOURCE" yaml:"resource"`
+
+	// AuthorizationServers is the list of authorisation server issuer URLs that
+	// can issue tokens for this resource (RFC 9728 §3.1).
+	// Optional. Empty default = discovery feature disabled (backward-compatible).
+	AuthorizationServers []string `env:"MQUBE_AUTH_AUTHORIZATION_SERVERS" yaml:"authorizationServers"`
+
+	// ResourceMetadataURL is the absolute URL where the protected-resource-metadata
+	// document is published. When set, the auth middleware adds a
+	// `WWW-Authenticate: Bearer resource_metadata="<url>"` header to its 401
+	// responses (RFC 9728 §5.1).
+	// Optional. Empty default = WWW-Authenticate hint disabled (backward-compatible
+	// with existing consumers' 401s).
+	ResourceMetadataURL string `env:"MQUBE_AUTH_RESOURCE_METADATA_URL" yaml:"resourceMetadataURL"`
 }

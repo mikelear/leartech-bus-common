@@ -101,6 +101,115 @@ func TestNewTokenClaimsFromMapClaims(t *testing.T) {
 			expected:  nil,
 			expectErr: true,
 		},
+		// V6 ext claims (tenant_id / user_role / external_id) — additive
+		{
+			name: "V6ExtClaimsAllPresent",
+			mapClaims: map[string]any{
+				"sub":   "user-v6",
+				"scope": "leartechapi",
+				"ext": map[string]any{
+					"Permissions": []any{"Admin"},
+					"tenant_id":   "tenant-abc",
+					"user_role":   "broker",
+					"external_id": "ext-xyz",
+				},
+			},
+			expected: &auth.TokenClaims{
+				UserID:      "user-v6",
+				Scopes:      auth.Scopes{"leartechapi"},
+				Permissions: auth.Permissions{"Admin"},
+				TenantID:    "tenant-abc",
+				UserRole:    "broker",
+				ExternalID:  "ext-xyz",
+			},
+			expectErr: false,
+		},
+		{
+			name: "V6ExtClaimsPartial",
+			mapClaims: map[string]any{
+				"sub":   "user-v6-partial",
+				"scope": "leartechapi",
+				"ext": map[string]any{
+					"Permissions": []any{"Admin"},
+					"tenant_id":   "tenant-only",
+					// user_role and external_id intentionally absent
+				},
+			},
+			expected: &auth.TokenClaims{
+				UserID:      "user-v6-partial",
+				Scopes:      auth.Scopes{"leartechapi"},
+				Permissions: auth.Permissions{"Admin"},
+				TenantID:    "tenant-only",
+				UserRole:    "",
+				ExternalID:  "",
+			},
+			expectErr: false,
+		},
+		{
+			name: "V6ExtClaimsAbsentLeavesFieldsEmpty",
+			mapClaims: map[string]any{
+				"sub":   "user-no-v6",
+				"scope": "leartechapi",
+				"ext": map[string]any{
+					"Permissions": []any{"Admin"},
+				},
+			},
+			expected: &auth.TokenClaims{
+				UserID:      "user-no-v6",
+				Scopes:      auth.Scopes{"leartechapi"},
+				Permissions: auth.Permissions{"Admin"},
+				TenantID:    "",
+				UserRole:    "",
+				ExternalID:  "",
+			},
+			expectErr: false,
+		},
+		{
+			name: "V6ExtClaimsNonStringValuesIgnored",
+			mapClaims: map[string]any{
+				"sub":   "user-bad-types",
+				"scope": "leartechapi",
+				"ext": map[string]any{
+					"Permissions": []any{"Admin"},
+					"tenant_id":   42,               // not a string
+					"user_role":   []any{"x"},       // not a string
+					"external_id": map[string]any{}, // not a string
+				},
+			},
+			expected: &auth.TokenClaims{
+				UserID:      "user-bad-types",
+				Scopes:      auth.Scopes{"leartechapi"},
+				Permissions: auth.Permissions{"Admin"},
+				TenantID:    "",
+				UserRole:    "",
+				ExternalID:  "",
+			},
+			expectErr: false,
+		},
+		{
+			name: "V6ExtClaimsAlongsidePlatformPermissionsRegression",
+			mapClaims: map[string]any{
+				"sub":   "user-combined",
+				"scope": "leartechapi",
+				"ext": map[string]any{
+					"Permissions":         []any{"Admin"},
+					"PlatformPermissions": []any{"SetValues", "ViewBankDetails"},
+					"tenant_id":           "tenant-x",
+					"user_role":           "underwriter",
+					"external_id":         "ext-99",
+				},
+			},
+			expected: &auth.TokenClaims{
+				UserID:              "user-combined",
+				Scopes:              auth.Scopes{"leartechapi"},
+				Permissions:         auth.Permissions{"Admin"},
+				PlatformPermissions: auth.PlatformPermissions{auth.SetValues, auth.ViewBankDetails},
+				TenantID:            "tenant-x",
+				UserRole:            "underwriter",
+				ExternalID:          "ext-99",
+			},
+			expectErr: false,
+		},
 	}
 
 	for _, tc := range testCases {
