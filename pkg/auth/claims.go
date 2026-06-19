@@ -14,6 +14,15 @@ type TokenClaims struct {
 	Permissions         Permissions
 	PlatformPermissions PlatformPermissions
 	Scopes              Scopes
+	// TenantID is the optional V6 tenant identifier extracted from ext.tenant_id.
+	// Empty when the claim is absent (backward-compatible with V5 tokens).
+	TenantID string
+	// UserRole is the optional V6 user role extracted from ext.user_role.
+	// Empty when the claim is absent (backward-compatible with V5 tokens).
+	UserRole string
+	// ExternalID is the optional V6 external identifier extracted from ext.external_id.
+	// Empty when the claim is absent (backward-compatible with V5 tokens).
+	ExternalID string
 }
 
 func NewTokenClaimsFromMapClaims(mc jwt.MapClaims) (claims *TokenClaims, err error) {
@@ -59,12 +68,55 @@ func NewTokenClaimsFromMapClaims(mc jwt.MapClaims) (claims *TokenClaims, err err
 		log.Debug().Msg("No platform permissions found in claims")
 	}
 
+	// V6 ext claims (tenant_id / user_role / external_id) are optional and additive.
+	// Absent values produce empty strings — no error — preserving backward compatibility
+	// with V5 tokens that don't set these fields. See the auth-service consent handler
+	// for the canonical key names.
+	tenantID := extractExtStringClaim(mc, "tenant_id")
+	userRole := extractExtStringClaim(mc, "user_role")
+	externalID := extractExtStringClaim(mc, "external_id")
+
 	return &TokenClaims{
 		UserID:              userID,
 		Permissions:         permissions,
 		PlatformPermissions: platformPermissions,
 		Scopes:              scopes,
+		TenantID:            tenantID,
+		UserRole:            userRole,
+		ExternalID:          externalID,
 	}, nil
+}
+
+// extractExtStringClaim returns the string value of mc["ext"][key], or "" when:
+//   - the ext claim is absent
+//   - the ext claim is not a map
+//   - the key is absent from the ext map
+//   - the value is not a string
+//
+// This is the canonical pattern for optional V6 ext claims and mirrors the
+// extractPermissionsFromClaims / extractPlatformPermissionsFromClaims shape.
+func extractExtStringClaim(mc jwt.MapClaims, key string) string {
+	ext, ok := mc["ext"]
+	if !ok {
+		return ""
+	}
+
+	extMap, ok := ext.(map[string]any)
+	if !ok {
+		return ""
+	}
+
+	valAny, ok := extMap[key]
+	if !ok {
+		return ""
+	}
+
+	val, ok := valAny.(string)
+	if !ok {
+		return ""
+	}
+
+	return val
 }
 
 // extractPlatformPermissionsFromClaims extracts platform permissions from the "ext.PlatformPermissions" claim.

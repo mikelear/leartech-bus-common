@@ -66,7 +66,7 @@ func (c *ServiceClient) Middleware(requiredPerms Permissions) gin.HandlerFunc {
 		tokenClaims, err := c.GetRequestTokenClaimsFromGinContext(gc)
 		if err != nil {
 			log.Debug().Err(err).Msg("failed to decode/verify the token")
-			gc.AbortWithStatus(http.StatusUnauthorized)
+			c.abortUnauthorized(gc)
 			return
 		}
 
@@ -78,6 +78,19 @@ func (c *ServiceClient) Middleware(requiredPerms Permissions) gin.HandlerFunc {
 			gc.AbortWithStatus(http.StatusForbidden)
 		}
 	}
+}
+
+// abortUnauthorized aborts the request with 401 Unauthorized, optionally
+// attaching the RFC 9728 §5.1 WWW-Authenticate hint when ResourceMetadataURL
+// is configured. When unconfigured (the default for existing consumers),
+// behaviour is identical to a plain gc.AbortWithStatus(401) — no new header
+// is emitted. This preserves backward compatibility with consumers that
+// don't opt in to the discovery feature.
+func (c *ServiceClient) abortUnauthorized(gc *gin.Context) {
+	if hint := wwwAuthenticateBearerHint(c.cfg); hint != "" {
+		gc.Header("WWW-Authenticate", hint)
+	}
+	gc.AbortWithStatus(http.StatusUnauthorized)
 }
 
 func (c *ServiceClient) isTokenAllowedAccess(requiredPerms Permissions, tokenClaims *TokenClaims) bool {
@@ -96,7 +109,7 @@ func (c *ServiceClient) PlatformMiddleware(requiredPerms PlatformPermissions) gi
 		tokenClaims, err := c.GetRequestTokenClaimsFromGinContext(gc)
 		if err != nil {
 			log.Debug().Err(err).Msg("failed to decode/verify the token")
-			gc.AbortWithStatus(http.StatusUnauthorized)
+			c.abortUnauthorized(gc)
 			return
 		}
 
