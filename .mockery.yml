@@ -51,9 +51,3 @@ packages:
       dir: '{{.InterfaceDir}}'
       filename: '{{.InterfaceName | lower}}_mock.go'
       pkgname: '{{.SrcPackageName}}'
-  github.com/mikelear/leartech-bus-common/pkg/auth:
-    config:
-      all: true
-      dir: '{{.InterfaceDir}}'
-      filename: '{{.InterfaceName | lower}}_mock.go'
-      pkgname: '{{.SrcPackageName}}'
