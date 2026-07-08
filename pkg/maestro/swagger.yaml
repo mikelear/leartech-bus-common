@@ -1,0 +1,519 @@
+definitions:
+  AnnounceEventRequest:
+    properties:
+      actionedBy:
+        description: Who actioned the event (userId if applicable - optional)
+        type: string
+      annotations:
+        additionalProperties:
+          type: string
+        description: Annotations associated with the event
+        type: object
+      name:
+        description: Name of the event to be announced
+        type: string
+      producedBy:
+        description: Which service produced the event
+        type: string
+    required:
+    - name
+    - producedBy
+    type: object
+  AnnounceEventResponse:
+    properties:
+      errorDescription:
+        type: string
+        x-nullable: true
+      received:
+        type: boolean
+      success:
+        type: boolean
+    type: object
+  ConsumeEventRequest:
+    properties:
+      actionedBy:
+        type: string
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
+      id:
+        type: string
+      name:
+        type: string
+      producedTime:
+        format: date-time
+        type: string
+    required:
+    - id
+    - name
+    - producedTime
+    type: object
+  ConsumeEventResponse:
+    properties:
+      errorReason:
+        type: string
+      isConsumed:
+        type: boolean
+      isErrored:
+        type: boolean
+    type: object
+  Consumer:
+    properties:
+      serviceName:
+        type: string
+      url:
+        type: string
+    type: object
+  EventConsumptionDto:
+    properties:
+      consumedBy:
+        type: string
+      consumedTime:
+        type: string
+      errorReason:
+        type: string
+      isConsumed:
+        type: boolean
+      isErrored:
+        type: boolean
+    type: object
+  EventDto:
+    properties:
+      actionedBy:
+        type: string
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
+      consumptions:
+        items:
+          $ref: '#/definitions/EventConsumptionDto'
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      producedBy:
+        type: string
+      producedTime:
+        type: string
+    type: object
+  EventRegistrationInfo:
+    properties:
+      consumers:
+        items:
+          $ref: '#/definitions/Consumer'
+        type: array
+      name:
+        type: string
+      producer:
+        $ref: '#/definitions/Producer'
+    type: object
+  GetEventRegistrationInfoForNameResponse:
+    properties:
+      errorDescription:
+        type: string
+        x-nullable: true
+      eventRegistration:
+        $ref: '#/definitions/EventRegistrationInfo'
+      success:
+        type: boolean
+    type: object
+  GetEventRegistrationInfoResponse:
+    properties:
+      errorDescription:
+        type: string
+        x-nullable: true
+      eventRegistrations:
+        items:
+          $ref: '#/definitions/EventRegistrationInfo'
+        type: array
+      success:
+        type: boolean
+    type: object
+  GetEventsDtoResponse:
+    properties:
+      errorDescription:
+        type: string
+        x-nullable: true
+      events:
+        items:
+          $ref: '#/definitions/EventDto'
+        type: array
+      success:
+        type: boolean
+    type: object
+  GetLatestEventsDetailsResponse:
+    properties:
+      errorDescription:
+        type: string
+        x-nullable: true
+      latestEvents:
+        items:
+          $ref: '#/definitions/LatestEventDto'
+        type: array
+      success:
+        type: boolean
+    type: object
+  LatestEventDto:
+    properties:
+      latestFailedConsumptions:
+        items:
+          $ref: '#/definitions/LatestFailedEventConsumptionDto'
+        type: array
+      latestSuccessfulConsumptions:
+        items:
+          $ref: '#/definitions/LatestSuccessfulEventConsumptionDto'
+        type: array
+      name:
+        type: string
+      producedBy:
+        type: string
+      producedTime:
+        type: string
+    type: object
+  LatestFailedEventConsumptionDto:
+    properties:
+      consumedBy:
+        type: string
+      consumedTime:
+        type: string
+      errorReason:
+        type: string
+    type: object
+  LatestSuccessfulEventConsumptionDto:
+    properties:
+      consumedBy:
+        type: string
+      consumedTime:
+        type: string
+    type: object
+  Producer:
+    properties:
+      annotationKeys:
+        items:
+          type: string
+        type: array
+      queue:
+        type: string
+      serviceName:
+        type: string
+    type: object
+  Response:
+    properties:
+      errorDescription:
+        type: string
+        x-nullable: true
+      success:
+        type: boolean
+    type: object
+info:
+  contact: {}
+  description: mini orchestration service for handling events
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Maestro Service API
+  version: 4.3.6-dev+b9e6bf9
+paths:
+  /api/event_maestro/announce_event:
+    post:
+      consumes:
+      - application/json
+      description: Announces an event for a case to maestro
+      operationId: AnnounceEvent
+      parameters:
+      - description: Event to announce
+        in: body
+        name: announceRequest
+        required: true
+        schema:
+          $ref: '#/definitions/AnnounceEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/AnnounceEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Announces an event for a case to maestro
+      tags:
+      - Event Maestro
+  /api/event_maestro/consume_event:
+    post:
+      consumes:
+      - application/json
+      description: This is a place-holder for consistent package generation, and as
+        an example of the consume endpoint
+      operationId: ConsumeEvent
+      parameters:
+      - description: Event to consume
+        in: body
+        name: consumeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ConsumeEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ConsumeEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Consumes an event for a case from the maestro
+      tags:
+      - Event Maestro
+  /api/event_maestro/events_by_annotation/{annotation_key}/{annotation_value}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves events by annotation
+      operationId: GetEventsByAnnotation
+      parameters:
+      - description: Annotation Key
+        in: path
+        name: annotation_key
+        required: true
+        type: string
+      - description: Annotation Value
+        in: path
+        name: annotation_value
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GetEventsDtoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieves events by annotation
+      tags:
+      - Event Maestro
+  /api/event_maestro/reprocess_event/{event_id}:
+    put:
+      consumes:
+      - application/json
+      description: Reprocesses an event from the maestro events log, usually for failed
+        events
+      operationId: ReprocessEvent
+      parameters:
+      - description: Event ID
+        in: path
+        name: event_id
+        required: true
+        type: string
+      - description: Only failures
+        in: query
+        name: only_failures
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Reprocesses an event from the maestro events log
+      tags:
+      - Event Maestro
+  /api/event_maestro/reprocess_event_for_consumer/{event_id}/{consumer_name}:
+    put:
+      consumes:
+      - application/json
+      description: Reprocesses an event for a specific consumer
+      operationId: ReprocessEventForConsumer
+      parameters:
+      - description: Event ID
+        in: path
+        name: event_id
+        required: true
+        type: string
+      - description: Consumer Name
+        in: path
+        name: consumer_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Reprocesses an event for a specific consumer
+      tags:
+      - Event Maestro
+  /api/event_registration/event_info:
+    get:
+      consumes:
+      - application/json
+      description: Returns information about event registrations
+      operationId: GetEventRegistrationInformation
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GetEventRegistrationInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Returns information about event registrations
+      tags:
+      - Event Registration
+  /api/event_registration/event_info/{eventName}:
+    get:
+      consumes:
+      - application/json
+      description: Returns information about a given event registrations
+      operationId: GetEventRegistrationInformationForName
+      parameters:
+      - description: the name of the event to get information for
+        in: path
+        name: eventName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GetEventRegistrationInfoForNameResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Returns information about a given event registrations
+      tags:
+      - Event Registration
+  /api/latest_events/latest_event_details:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the latest event details for each event
+      operationId: GetLatestEventDetails
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GetLatestEventsDetailsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieves the latest event details for each event
+      tags:
+      - Latest Events
+  /health:
+    get:
+      description: get the health of the dependencies of the service
+      operationId: Health
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Gets the health of the service
+      tags:
+      - Health
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
