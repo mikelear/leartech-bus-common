@@ -1,0 +1,17 @@
+# oapi-codegen v2 config for pkg/maestro.
+#
+# Emits types + client (with-responses) into client_generated.go.
+# Regenerate by running `go generate ./pkg/maestro/...` from the repo root.
+package: maestro
+output: client_generated.go
+generate:
+  models: true
+  client: true
+output-options:
+  # The Maestro spec defines `AnnounceEventResponse` as a schema, but the
+  # generator also emits a `<Operation>Response` wrapper struct for
+  # ClientWithResponses. Without a suffix the two collide. `HTTPResponse`
+  # keeps the wrappers namespaced (AnnounceEventHTTPResponse) while the
+  # schema type keeps its natural name.
+  response-type-suffix: HTTPResponse
+  skip-prune: false

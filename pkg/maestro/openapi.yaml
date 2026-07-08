@@ -1,0 +1,144 @@
+openapi: 3.0.3
+info:
+  title: Maestro Service API
+  description: |
+    OpenAPI 3.0 transcription of the Maestro Service Swagger 2.0 spec
+    (see swagger.yaml in this directory for the ground-truth upstream
+    document at leartech-maestro-service/docs/swagger.yaml).
+
+    oapi-codegen v2 only consumes OpenAPI 3.x, so we vendor this
+    hand-maintained OAS3 equivalent alongside the upstream Swagger 2.0
+    spec. When the upstream spec changes, refresh swagger.yaml first
+    (see generate.go), then re-transcribe the delta into this file and
+    re-run `go generate`.
+
+    Scope: only the endpoints consumed by Go services are transcribed.
+    Today that is /api/event_maestro/announce_event (producer client).
+    /api/event_maestro/consume_event is served BY the Go service — the
+    handler is hand-written in handler.go — but its request DTO is also
+    included here so producers/consumers agree on wire shape.
+  version: 4.3.6
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://maestro.example.com
+    description: Placeholder — real base URL supplied at client construction time.
+paths:
+  /api/event_maestro/announce_event:
+    post:
+      summary: Announces an event to Maestro
+      description: PRODUCE — publishes a durable event via the Maestro broker.
+      operationId: AnnounceEvent
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnounceEventRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnounceEventResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    AnnounceEventRequest:
+      type: object
+      required:
+        - name
+        - producedBy
+      properties:
+        name:
+          type: string
+          description: Name of the event to be announced.
+        producedBy:
+          type: string
+          description: Which service produced the event.
+        annotations:
+          type: object
+          additionalProperties:
+            type: string
+          description: Annotations associated with the event.
+        actionedBy:
+          type: string
+          description: Who actioned the event (userId if applicable — optional).
+    AnnounceEventResponse:
+      type: object
+      properties:
+        received:
+          type: boolean
+        success:
+          type: boolean
+        errorDescription:
+          type: string
+          nullable: true
+    Response:
+      type: object
+      properties:
+        success:
+          type: boolean
+        errorDescription:
+          type: string
+          nullable: true
+    ConsumeEventRequest:
+      type: object
+      required:
+        - id
+        - name
+        - producedTime
+      properties:
+        id:
+          type: string
+          description: Unique event id assigned by Maestro.
+        name:
+          type: string
+          description: Event name (matches the AnnounceEventRequest.name).
+        producedTime:
+          type: string
+          format: date-time
+          description: RFC3339 timestamp of when the event was produced.
+        annotations:
+          type: object
+          additionalProperties:
+            type: string
+          description: Annotations copied from the producer's announcement.
+        actionedBy:
+          type: string
+          description: Who actioned the event (userId if applicable).
+    ConsumeEventResponse:
+      type: object
+      properties:
+        isConsumed:
+          type: boolean
+        isErrored:
+          type: boolean
+        errorReason:
+          type: string
