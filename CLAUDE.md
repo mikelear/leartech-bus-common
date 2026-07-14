@@ -53,9 +53,22 @@ make tidy-deps      # Run go mod tidy and install generate dependencies
 
 The library is organized into three main packages under `pkg/`:
 
-1. **`pkg/cache`** - Generic caching abstractions with Redis and in-memory implementations
-2. **`pkg/lock`** - Distributed locking using cache backends
-3. **`pkg/logger`** - Structured logging wrapper around zerolog
+1. **`pkg/auth`** - Fail-closed, audience-bound Bearer / JWKS validator. Consumed by every service that terminates HTTP for the leartech bus, INCLUDING the public MCP surface.
+2. **`pkg/cache`** - Generic caching abstractions with Redis and in-memory implementations
+3. **`pkg/lock`** - Distributed locking using cache backends
+4. **`pkg/logger`** - Structured logging wrapper around zerolog
+
+### Auth Package (`pkg/auth`)
+
+Deliberately fail-closed. There is NO runtime way to disable auth.
+
+- **Config**: `Issuer`, `JWKSURL`, `Audience` — all three are REQUIRED. `Config.Validate` returns `ErrMissingConfig` if any is empty.
+- **Constructor**: `NewVerifier(ctx, cfg)` calls `Validate` and then performs the initial JWKS fetch. A broken JWKS endpoint fails startup — no lazy first-request fallback.
+- **Verifier**: Enforces signature (RS/ES only — HS is refused), issuer, expiry, and audience. Missing `aud`, wrong `aud`, or an `aud` array without the configured value all return `ErrAudienceMismatch`.
+- **Middleware**: `auth.Middleware(v)` requires a non-nil verifier; passing nil panics. `auth.ScopeRequired(...)` chains AFTER `Middleware` for finer-grained gates.
+- **Claims propagation**: Verified `*Claims` is stored on both the gin context (`c.Get(auth.ContextKey)`) and the request context (`auth.FromContext(ctx)`), so background workers spawned from a handler can carry the caller's identity via `auth.WithClaims`.
+
+Rationale for the strict shape lives in the package doc (`pkg/auth/doc.go`).
 
 ### Cache Package (`pkg/cache`)
 
