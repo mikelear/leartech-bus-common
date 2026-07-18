@@ -61,8 +61,9 @@ func TestConfig_Validate_ErrorsOnAllMissing(t *testing.T) {
 
 func TestConfig_Validate_TreatsWhitespaceOnlyAsMissing(t *testing.T) {
 	// Whitespace-only values are the classic accidental config —
-	// caller reads MQUBE_AUTH_AUDIENCE="" from env and stringifies
-	// into "   ". These MUST error, not silently pass.
+	// caller reads LEARTECH_AUTH_AUDIENCE="" (or the legacy
+	// MQUBE_AUTH_AUDIENCE) from env and stringifies into "   ".
+	// These MUST error, not silently pass.
 	cfg := auth.Config{Issuer: "  ", JWKSURL: "  ", Audience: "  "}
 	err := cfg.Validate()
 	require.Error(t, err)
