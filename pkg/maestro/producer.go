@@ -51,6 +51,8 @@ type producerConfig struct {
 	httpClient   HttpRequestDoer
 	editors      []RequestEditorFn
 	clientOption []ClientOption
+	tokenSource  TokenSource
+	verifyCtx    context.Context //nolint:containedctx // only used for the one construction-time check
 }
 
 // WithProducerHTTPClient plugs a caller-supplied *http.Client (or any
@@ -74,6 +76,26 @@ func WithProducerHTTPClient(hc HttpRequestDoer) ProducerOption {
 func WithProducerRequestEditor(fn RequestEditorFn) ProducerOption {
 	return func(cfg *producerConfig) {
 		cfg.editors = append(cfg.editors, fn)
+	}
+}
+
+// WithAudienceCheck makes construction VERIFY that ts mints tokens maestro
+// will accept, rather than assuming it.
+//
+// This is the option that exists because a previous client documented
+// `aud=leartech-maestro` in its package comment — confidently, wrongly, and for
+// as long as it existed. A comment cannot fail. NewProducer mints one token
+// through ts and refuses to build if its `aud` does not contain Audience, so a
+// misconfigured publisher fails at boot naming the audience it actually got,
+// instead of at the first 401 attributed to the wrong layer.
+//
+// Real deployments should always pass this. Tests against a mock server can
+// omit it — the check is skipped when no TokenSource is supplied, which is
+// visible at the call site rather than hidden behind a boolean.
+func WithAudienceCheck(ctx context.Context, ts TokenSource) ProducerOption {
+	return func(cfg *producerConfig) {
+		cfg.tokenSource = ts
+		cfg.verifyCtx = ctx
 	}
 }
 
@@ -120,6 +142,19 @@ func NewProducer(baseURL, producedBy string, opts ...ProducerOption) (*Producer,
 	}
 	for _, ed := range cfg.editors {
 		clientOpts = append(clientOpts, WithRequestEditorFn(ed))
+	}
+
+	// Audience BEFORE transport: there is no point building a client whose
+	// tokens maestro will refuse, and the error is far clearer here than it
+	// would be as a 401 on the first announce.
+	if cfg.tokenSource != nil {
+		ctx := cfg.verifyCtx
+		if ctx == nil {
+			ctx = context.Background()
+		}
+		if err := VerifyAudience(ctx, cfg.tokenSource); err != nil {
+			return nil, err
+		}
 	}
 
 	c, err := NewClientWithResponses(baseURL, clientOpts...)
