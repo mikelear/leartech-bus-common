@@ -1,4 +1,26 @@
+# Matches every other leartech repo (go-common, plan-api, gate, auth-service,
+# artifact-api, lighthouse-pr-events).
+#
+# This file previously read:
+#
+#     approvers:
+#     - go
+#     reviewers:
+#     - go
+#
+# `go` is not a person or a local alias — it resolved through OWNERS_ALIASES'
+# foreignAliases into spring-financial-group, so the approvers of this repo were
+# MQUBE's Go team. Inherited when the repo was bootstrapped from the mqube fork.
+#
+# The effect: nobody at leartech was an approver, so Lighthouse never applied
+# the `approved` label and no PR here could auto-merge however green it was.
+# leartech-bus-common#11 sat green on both clusters reporting "Not mergeable.
+# Needs approved label." Same for leartech-maestro-service, the other fork.
+#
+# Being a library rather than a released service has nothing to do with it —
+# leartech-go-common is also a library and merges normally.
 approvers:
-- go
+- mikelear
+- LeartechCodeReviewerBot
 reviewers:
-- go
+- mikelear
