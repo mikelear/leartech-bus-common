@@ -29,15 +29,20 @@ package maestro
 //
 // Worth knowing what that answers. An audience ENFORCED by a running service
 // but present in no client's allow-list names a service no caller can
-// authenticate to. On 2026-09-22 leartech-gate was in that state on both
-// clusters — though checking the traffic first matters: it had served 75,919
-// requests in seven days and every one was a kubelet health probe. It is
-// consumed as a Tekton step image, which needs no token, so the deployed HTTP
-// service is unused rather than broken.
+// authenticate to. That is worth finding, and it is also where the query's
+// false positives live, so triage before raising anything.
 //
-// That is the more common answer, and the reason to look at both numbers. The
-// query finds unreachable services; only the traffic says whether anyone was
-// trying to reach them.
+// The canonical false positive, as of 2026-09-22, is leartech-gate. It
+// enforces an audience no client can mint, on both clusters — and that is
+// correct. The repo is the GOLDEN GO SERVICE TEMPLATE, and its deployment is
+// the template demonstrating itself, auth included. Nothing calls it because
+// nothing is meant to: seven days of logs are 75,919 requests, every one a
+// kubelet health probe. The estate uses the repo's OTHER binary, gate-cli,
+// which Tekton runs by overriding the image entrypoint and which needs no
+// token at all.
+//
+// So read the traffic alongside the allow-list. The allow-list says who could
+// call a service; only the traffic says whether anyone meant to.
 //
 // An audience is not deployment configuration. The issuer is — the two clusters
 // run different Hydras — but the audience names the SERVICE, and it is
