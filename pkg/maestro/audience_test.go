@@ -182,3 +182,69 @@ func TestAudienceIsTheValueMaestroEnforces(t *testing.T) {
 			"cluster, the audience does not, because it names the service.", Audience)
 	}
 }
+
+// ── exact match, not "looks close enough" ───────────────────────────────────
+
+// An audience that CONTAINS ours is a different audience. A prefix or
+// substring match would accept a token minted for a neighbouring service and
+// report success, which is the failure this package exists to catch — and the
+// names in this estate are close enough for it to matter
+// ("leartech-maestro" vs "leartech-maestro-service" is the original bug).
+func TestVerifyAudience_AnAudienceThatMerelyContainsOursIsRefused(t *testing.T) {
+	for _, near := range []string{
+		Audience + "-v2",
+		Audience + "-preview",
+		"internal-" + Audience,
+	} {
+		t.Run(near, func(t *testing.T) {
+			err := VerifyAudience(t.Context(), staticToken(jwtWithAud(`["`+near+`"]`)))
+			if err == nil {
+				t.Fatalf("a token minted for %q was accepted as %q", near, Audience)
+			}
+			if !strings.Contains(err.Error(), near) {
+				t.Errorf("the error should report what the token actually carried, got: %v", err)
+			}
+		})
+	}
+}
+
+// A shorter audience that ours contains must also fail. Matching the other way
+// round is the same bug seen from the other side.
+func TestVerifyAudience_APrefixOfOurAudienceIsRefused(t *testing.T) {
+	if err := VerifyAudience(t.Context(), staticToken(jwtWithAud(`["leartech-maestro"]`))); err == nil {
+		t.Fatal("a token for \"leartech-maestro\" was accepted as \"" + Audience + "\"")
+	}
+}
+
+// `aud` is specified as a string or a list of strings. Anything else is a
+// token we cannot read, and an unreadable audience is not a matching one — but
+// it must not panic either, because a panic in the auth path takes the service
+// down rather than refusing one caller.
+func TestVerifyAudience_ANonStringAudIsRefusedAndDoesNotPanic(t *testing.T) {
+	for _, aud := range []string{`42`, `true`, `{"a":"b"}`, `[42, true]`} {
+		t.Run(aud, func(t *testing.T) {
+			if err := VerifyAudience(t.Context(), staticToken(jwtWithAud(aud))); err == nil {
+				t.Errorf("a token whose aud is %s was accepted", aud)
+			}
+		})
+	}
+}
+
+// A mixed list is REFUSED even when it contains our audience, and that is the
+// intended answer rather than an oversight. `aud` is specified as a string or
+// an array of strings; anything else is a credential we cannot fully read, and
+// picking the entries we happen to understand out of a malformed claim means
+// deciding authentication on a partial parse. The error names the shape so the
+// reason is not mistaken for a wrong-audience failure.
+//
+// Written first as "a mixed list still finds ours", which failed. The code was
+// right.
+func TestVerifyAudience_AMixedListIsRefusedEvenWhenItContainsOurs(t *testing.T) {
+	err := VerifyAudience(t.Context(), staticToken(jwtWithAud(`[42, "`+Audience+`", true]`)))
+	if err == nil {
+		t.Fatal("a malformed aud was accepted because one entry happened to match")
+	}
+	if !strings.Contains(err.Error(), "neither a string nor an array of strings") {
+		t.Errorf("the error should name the shape problem, not read as a wrong audience: %v", err)
+	}
+}

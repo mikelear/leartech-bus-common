@@ -9,13 +9,28 @@ package maestro
 //	AuthAudience string `envconfig:"LEARTECH_AUTH_AUDIENCE" default:"leartech-maestro"`
 //
 // maestro enforces "leartech-maestro-service". "leartech-maestro" is not an
-// audience any service accepts and no Hydra client is allowed to mint it, so
-// that publisher could never have authenticated — and nothing said so, because
-// Hydra's `audience` field is an ALLOW-LIST rather than a default: asking for
-// an audience you are not permitted does not error, it returns a token without
-// it. The callee then refuses. Measured on staging 2026-09-12: 9 audiences
-// enforced across the estate, 13 mintable, and leartech-maestro-service
-// mintable by none of the 62 clients.
+// audience any service accepts, so that publisher could not authenticate — and
+// nothing said so, because Hydra's `audience` field is an ALLOW-LIST rather
+// than a default: asking for an audience you are not permitted does not error,
+// it returns a token without it. The callee then refuses. That is Hydra's
+// behaviour, not an estate setting, and it is the reason a wrong audience
+// surfaces as a 401 at the callee rather than a failure at the caller.
+//
+// THE COUNTS THAT USED TO BE HERE HAVE BEEN REMOVED, because they rotted.
+// This comment read "mintable by none of the 62 clients", measured
+// 2026-09-12. On 2026-09-22 it was two of 72 — the sentence was false, sat in
+// a package with no comment gate, and was still being read as current. A
+// count of live cluster state goes stale the moment the cluster changes, so
+// here is how to ask instead:
+//
+//	kubectl -n jx-staging exec deploy/... -- \
+//	  curl -s "http://leartech-auth-service-hydra-admin:4445/admin/clients?page_size=500" \
+//	  | jq '[.[]|select(.audience|index("leartech-maestro-service"))|.client_id]'
+//
+// Worth knowing what that answers. An audience ENFORCED by a running service
+// but present in no client's allow-list is a service nothing can call. On
+// 2026-09-22 leartech-gate was in exactly that state, which is the same shape
+// as the leartech-maestro bug above.
 //
 // An audience is not deployment configuration. The issuer is — the two clusters
 // run different Hydras — but the audience names the SERVICE, and it is
