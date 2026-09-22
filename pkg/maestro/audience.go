@@ -28,9 +28,16 @@ package maestro
 //	  | jq '[.[]|select(.audience|index("leartech-maestro-service"))|.client_id]'
 //
 // Worth knowing what that answers. An audience ENFORCED by a running service
-// but present in no client's allow-list is a service nothing can call. On
-// 2026-09-22 leartech-gate was in exactly that state, which is the same shape
-// as the leartech-maestro bug above.
+// but present in no client's allow-list names a service no caller can
+// authenticate to. On 2026-09-22 leartech-gate was in that state on both
+// clusters — though checking the traffic first matters: it had served 75,919
+// requests in seven days and every one was a kubelet health probe. It is
+// consumed as a Tekton step image, which needs no token, so the deployed HTTP
+// service is unused rather than broken.
+//
+// That is the more common answer, and the reason to look at both numbers. The
+// query finds unreachable services; only the traffic says whether anyone was
+// trying to reach them.
 //
 // An audience is not deployment configuration. The issuer is — the two clusters
 // run different Hydras — but the audience names the SERVICE, and it is
