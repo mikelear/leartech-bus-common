@@ -13,6 +13,16 @@ import (
 // TemporaryMigrationName is a migration inserted to tell other services that a migration is running
 const TemporaryMigrationName = "InProgressMigration"
 
+// Mongo document keys, named once. They appeared 6, 5, 3 and 3 times as
+// literals; a typo in any one of them is a filter that silently matches
+// nothing rather than a compile error.
+const (
+	fieldID        = "_id"
+	fieldStatus    = "status"
+	fieldIsCurrent = "isCurrent"
+	opSet          = "$set"
+)
+
 type MigrationManager struct {
 	MigrationRepo       MigrationRepositoryInterface
 	NodeFactory         NodeFactoryInterface
@@ -104,10 +114,10 @@ func (mm *MigrationManager) ApplyMigrationForward(ctx context.Context, appliedMi
 
 		// Update previous node to not be current
 		prevNode.Model.IsCurrent = false
-		filter := map[string]interface{}{"_id": prevNode.Model.ID}
-		update := map[string]interface{}{"$set": map[string]interface{}{
-			"isCurrent": false,
-			"status":    CompletedMigrationStatus,
+		filter := map[string]interface{}{fieldID: prevNode.Model.ID}
+		update := map[string]interface{}{opSet: map[string]interface{}{
+			fieldIsCurrent: false,
+			fieldStatus:    CompletedMigrationStatus,
 		}}
 		_, err = mm.migrationCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
@@ -116,10 +126,10 @@ func (mm *MigrationManager) ApplyMigrationForward(ctx context.Context, appliedMi
 
 		// Update current node to be current
 		currentNode.Model.IsCurrent = true
-		filter = map[string]interface{}{"_id": currentNode.Model.ID}
-		update = map[string]interface{}{"$set": map[string]interface{}{
-			"isCurrent": true,
-			"status":    CompletedMigrationStatus,
+		filter = map[string]interface{}{fieldID: currentNode.Model.ID}
+		update = map[string]interface{}{opSet: map[string]interface{}{
+			fieldIsCurrent: true,
+			fieldStatus:    CompletedMigrationStatus,
 		}}
 		_, err = mm.migrationCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
@@ -146,7 +156,7 @@ func (mm *MigrationManager) ApplyMigrationBackward(ctx context.Context, appliedM
 		}
 
 		// Delete the regressed migration model
-		filter := map[string]interface{}{"_id": currentNode.Model.ID}
+		filter := map[string]interface{}{fieldID: currentNode.Model.ID}
 		_, err = mm.migrationCollection.DeleteOne(ctx, filter)
 		if err != nil {
 			return fmt.Errorf("failed to delete migration model: %w", err)
@@ -155,10 +165,10 @@ func (mm *MigrationManager) ApplyMigrationBackward(ctx context.Context, appliedM
 		// Set the next migration as current
 		currentNode = nextNode
 		currentNode.Model.IsCurrent = true
-		filter = map[string]interface{}{"_id": currentNode.Model.ID}
-		update := map[string]interface{}{"$set": map[string]interface{}{
-			"isCurrent": true,
-			"status":    CompletedMigrationStatus,
+		filter = map[string]interface{}{fieldID: currentNode.Model.ID}
+		update := map[string]interface{}{opSet: map[string]interface{}{
+			fieldIsCurrent: true,
+			fieldStatus:    CompletedMigrationStatus,
 		}}
 		_, err = mm.migrationCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
@@ -199,10 +209,10 @@ func (mm *MigrationManager) LoadMigrationModels(ctx context.Context) ([]Migratio
 // IsMigrationRunning checks if the migration is running
 func (mm *MigrationManager) IsMigrationRunning(ctx context.Context) (bool, error) {
 	filter := map[string]interface{}{
-		"status":  RunningMigrationStatus,
-		"name":    TemporaryMigrationName,
-		"_id":     TemporaryMigrationName,
-		"deleted": false,
+		fieldStatus: RunningMigrationStatus,
+		"name":      TemporaryMigrationName,
+		fieldID:     TemporaryMigrationName,
+		"deleted":   false,
 	}
 
 	runningMigrationCount, err := mm.migrationCollection.CountDocuments(ctx, filter)
@@ -236,10 +246,10 @@ func (mm *MigrationManager) SetMigrationToRunning(ctx context.Context) error {
 // RemoveMigrationFromRunning removes the migration from running
 func (mm *MigrationManager) RemoveMigrationFromRunning(ctx context.Context) error {
 	filter := map[string]interface{}{
-		"status":  RunningMigrationStatus,
-		"name":    TemporaryMigrationName,
-		"_id":     TemporaryMigrationName,
-		"deleted": false,
+		fieldStatus: RunningMigrationStatus,
+		"name":      TemporaryMigrationName,
+		fieldID:     TemporaryMigrationName,
+		"deleted":   false,
 	}
 
 	_, err := mm.migrationCollection.DeleteOne(ctx, filter)

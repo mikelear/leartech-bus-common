@@ -174,8 +174,56 @@ importfmt: get-fmt-deps
 	@echo "Formatting the imports..."
 	goimports -w $(GO_DEPENDENCIES)
 
-lint: ## Lints the code with golangci-lint
-	golangci-lint run
+# ── Golden Go gates: delegate to the pipeline catalog ─────────────────────
+#
+# Runs go/leartech-go.mk from leartech-pipeline-catalog — the same file the
+# go-lint task curls — so a laptop and CI drive one gate from one source.
+#
+# `lint` was previously `golangci-lint run` with no --config, which resolves
+# config by golangci's own discovery rather than the yq-merged estate base the
+# pipeline builds.
+LEARTECH_GO_MK_REF ?= main
+LEARTECH_GO_MK_URL ?= https://raw.githubusercontent.com/mikelear/leartech-pipeline-catalog/$(LEARTECH_GO_MK_REF)/go/leartech-go.mk
+LEARTECH_GO_MK     := .leartech-go.mk
+
+fetch-mk: $(LEARTECH_GO_MK) ## Fetch the golden go/leartech-go.mk from pipeline-catalog
+
+$(LEARTECH_GO_MK):
+	@echo "==> fetching $(LEARTECH_GO_MK_URL)"
+	@curl -fsSL -o $@ $(LEARTECH_GO_MK_URL)
+
+refresh-mk: ## Discard the cached golden mk so the next fetch is a real one
+	@rm -f $(LEARTECH_GO_MK)
+
+# SHELL=/bin/bash: the golden mk uses bash-only syntax. CI images ship bash as
+# /bin/sh so the drift is invisible there; a laptop /bin/sh needs the override.
+lint: fetch-mk ## golangci-lint against the merged estate config
+	$(MAKE) SHELL=/bin/bash -f $(LEARTECH_GO_MK) lint
+
+vuln: fetch-mk ## govulncheck
+	$(MAKE) SHELL=/bin/bash -f $(LEARTECH_GO_MK) vuln
+
+# require-committed exists because comment-gate diffs COMMITTED work. Run
+# against a dirty tree it reports +0/+0 and passes without reading anything —
+# a check that looked at nothing has to say so loudly rather than pass.
+require-committed:
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "FAIL: uncommitted changes. comment-gate diffs COMMITTED work, so"; \
+		echo "  running it now would report +0/+0 and pass without reading your"; \
+		echo "  changes. Commit first, then re-run."; \
+		git status --short | sed 's/^/    /'; \
+		exit 1; \
+	fi
+
+comment-gate: require-committed fetch-mk ## Challenge added prose: ratchet + claims must name a proof
+	$(MAKE) SHELL=/bin/bash -f $(LEARTECH_GO_MK) comment-gate \
+		COMMENTGATE_BASE=$(if $(PULL_BASE_REF),origin/$(PULL_BASE_REF),origin/main)
+
+# verify is THE local entry point: everything CI gates on, in one command.
+verify: refresh-mk lint vuln comment-gate ## Everything CI gates on, before pushing
+	@echo "==> verify: lint + vuln + comment-gate all passed"
+
+.PHONY: fetch-mk refresh-mk vuln require-committed comment-gate verify
 
 .PHONY: all
 all: fmt build test lint
