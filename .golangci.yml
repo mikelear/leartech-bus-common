@@ -396,6 +396,22 @@ linters:
     - common-false-positives
     # Excluding configuration per-path, per-linter, per-text and per-source.
     rules:
+    # revive's exported-stutter rule wants mongo.MongoClient renamed to
+    # mongo.Client, redis.RedisConfig to redis.Config, and fifteen more like
+    # them. Every one is exported from a SHARED LIBRARY other services compile
+    # against, so renaming them is a breaking change to consumers, not a
+    # tidy-up — leartech-maestro-service uses redis.RedisConfig today.
+    #
+    # Scoped to the packages carrying the legacy names rather than disabled
+    # globally, so a NEW stuttering name anywhere else still fails. If these
+    # are ever renamed behind a major version, delete the entry and the rule
+    # returns on its own.
+    - path: 'pkg/mongo/'
+      text: 'stutters'
+      linters: [ revive ]
+    - path: 'pkg/redis/'
+      text: 'stutters'
+      linters: [ revive ]
     - text: 'should have a package comment'
       linters: [ revive ]
     - text: 'exported \S+ \S+ should have comment( \(or a comment on this block\))? or be unexported'

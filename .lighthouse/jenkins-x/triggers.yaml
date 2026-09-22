@@ -7,6 +7,11 @@ spec:
     always_run: true
     optional: false
     source: "pullrequest.yaml"
+  - name: lint
+    context: "lint"
+    always_run: true
+    optional: false
+    source: "lint.yaml"
   - name: commit-semantics-check
     context: "commit-semantics-check"
     always_run: true

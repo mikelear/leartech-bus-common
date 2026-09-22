@@ -67,7 +67,7 @@ func TestParseAndSortMigrationsSuccess(t *testing.T) {
 	assert.Equal(t, mig2.Name(), remaining[0].Migration.Name())
 
 	// Verify that remaining nodes are sorted in ascending order by Version.
-	vers := []*version.Version{}
+	vers := make([]*version.Version, 0, len(remaining))
 	for _, n := range remaining {
 		vers = append(vers, n.Migration.Version())
 	}
