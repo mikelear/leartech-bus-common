@@ -15,3 +15,9 @@
 cover.out
 coverage.out
 coverage.html
+
+# Written by the jx-variables step at build time. Never commit it: jx preserves any value the
+# file already holds, so a tracked copy freezes the cluster it was written on. This one came
+# from the mqube fork and named jx3mqubebuild.azurecr.io / spring-financial-group long after
+# the repo moved to us-central1-docker.pkg.dev/product-first / oci, and jx kept those values.
+.jx/variables.sh
